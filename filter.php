@@ -25,8 +25,7 @@
  * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class filter_courseprofesores extends moodle_text_filter
-{
+class filter_courseprofesores extends moodle_text_filter {
     /** @var array Request-level cache of profesores per course. */
     protected static $profesorescache = [];
 
@@ -187,6 +186,10 @@ class filter_courseprofesores extends moodle_text_filter
                     'id' => $record->id,
                     'firstname' => $record->firstname,
                     'lastname' => $record->lastname,
+                    'firstnamephonetic' => $record->firstnamephonetic,
+                    'lastnamephonetic' => $record->lastnamephonetic,
+                    'middlename' => $record->middlename,
+                    'alternatename' => $record->alternatename,
                     'email' => $record->email,
                     'picture' => $record->picture,
                     'imagealt' => $record->imagealt,
@@ -218,8 +221,9 @@ class filter_courseprofesores extends moodle_text_filter
 
         [$rolesql, $roleparams] = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
-                       u.username, u.department, u.institution,
+        $sql = "SELECT u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                       u.middlename, u.alternatename, u.email, u.picture, u.imagealt, u.username,
+                       u.department, u.institution,
                        r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
                   FROM {role_assignments} ra
                   JOIN {user} u ON u.id = ra.userid
@@ -247,8 +251,9 @@ class filter_courseprofesores extends moodle_text_filter
         [$ctxsql, $ctxparams] = $DB->get_in_or_equal($parentcontextids, SQL_PARAMS_NAMED);
         [$rolesql, $roleparams] = $DB->get_in_or_equal($relevantroles, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.email, u.picture, u.imagealt,
-                       u.username, u.department, u.institution,
+        $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
+                       u.middlename, u.alternatename, u.email, u.picture, u.imagealt, u.username,
+                       u.department, u.institution,
                        r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
                   FROM {role_assignments} ra
                   JOIN {user} u ON u.id = ra.userid
