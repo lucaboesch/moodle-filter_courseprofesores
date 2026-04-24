@@ -16,8 +16,6 @@
 
 namespace filter_courseprofesores;
 
-use core\context\system as context_system;
-
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -42,7 +40,7 @@ final class filter_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-        $this->filter = new \filter_courseprofesores(\context_system::instance(), []);
+        $this->filter = new text_filter(\context_system::instance(), []);
     }
 
     /**
