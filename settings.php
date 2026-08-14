@@ -102,11 +102,13 @@ if ($ADMIN->fulltree) {
         $styleoptions
     ));
 
+
     $coloroptions = [
         'default' => get_string('color_default', 'filter_courseprofesores'),
         'orange' => get_string('color_orange', 'filter_courseprofesores'),
         'blue' => get_string('color_blue', 'filter_courseprofesores'),
         'pink' => get_string('color_pink', 'filter_courseprofesores'),
+        'custom' => get_string('customaccentcolor', 'filter_courseprofesores'),
     ];
 
     $settings->add(new admin_setting_configselect(
@@ -122,6 +124,7 @@ if ($ADMIN->fulltree) {
         'orange' => get_string('cardcolor_orange', 'filter_courseprofesores'),
         'blue' => get_string('cardcolor_blue', 'filter_courseprofesores'),
         'pink' => get_string('cardcolor_pink', 'filter_courseprofesores'),
+        'custom' => get_string('customcardcolor', 'filter_courseprofesores'),
     ];
 
     $settings->add(new admin_setting_configselect(
@@ -131,4 +134,116 @@ if ($ADMIN->fulltree) {
         'default',
         $cardcoloroptions
     ));
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customaccentcolor',
+        get_string('customaccentcolor', 'filter_courseprofesores'),
+        get_string('customaccentcolor_desc', 'filter_courseprofesores'),
+        '#0f6cbf'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customaccentcolor',
+        'filter_courseprofesores/accentcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardcolor',
+        get_string('customcardcolor', 'filter_courseprofesores'),
+        get_string('customcardcolor_desc', 'filter_courseprofesores'),
+        '#120ef2'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardcolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardbordercolor',
+        get_string('customcardbordercolor', 'filter_courseprofesores'),
+        get_string('customcardbordercolor_desc', 'filter_courseprofesores'),
+        '#0e0bca'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardbordercolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardtextcolor',
+        get_string('customcardtextcolor', 'filter_courseprofesores'),
+        get_string('customcardtextcolor_desc', 'filter_courseprofesores'),
+        '#ffffff'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardtextcolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardtextsecondarycolor',
+        get_string('customcardtextsecondarycolor', 'filter_courseprofesores'),
+        get_string('customcardtextsecondarycolor_desc', 'filter_courseprofesores'),
+        '#ffffff'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardtextsecondarycolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardbuttoncolor',
+        get_string('customcardbuttoncolor', 'filter_courseprofesores'),
+        get_string('customcardbuttoncolor_desc', 'filter_courseprofesores'),
+        '#ffffff'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardbuttoncolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardbuttonhovercolor',
+        get_string('customcardbuttonhovercolor', 'filter_courseprofesores'),
+        get_string('customcardbuttonhovercolor_desc', 'filter_courseprofesores'),
+        '#ffffff'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardbuttonhovercolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
+
+    $settings->add(new admin_setting_configcolourpicker(
+        'filter_courseprofesores/customcardshadowcolor',
+        get_string('customcardshadowcolor', 'filter_courseprofesores'),
+        get_string('customcardshadowcolor_desc', 'filter_courseprofesores'),
+        '#120ef2'
+    ));
+
+    $settings->hide_if(
+        'filter_courseprofesores/customcardshadowcolor',
+        'filter_courseprofesores/cardcolor',
+        'neq',
+        'custom'
+    );
 }
