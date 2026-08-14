@@ -109,8 +109,103 @@ class text_filter extends \core_filters\text_filter {
             'onlinestatusformat'   => get_config('filter_courseprofesores', 'onlinestatusformat') === 'relative'
                 ? 'relative'
                 : 'absolute',
+            'customaccentcolor'    => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customaccentcolor'),
+                '#0f6cbf'
+            ),
+            'customcardcolor'      => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardcolor'),
+                '#120ef2'
+            ),
+            'customcardbordercolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbordercolor'),
+                '#0e0bca'
+            ),
+            'customcardtextcolor'  => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardtextcolor'),
+                '#ffffff'
+            ),
+            'customcardtextsecondarycolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardtextsecondarycolor'),
+                '#ffffff'
+            ),
+            'customcardbuttoncolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbuttoncolor'),
+                '#ffffff'
+            ),
+            'customcardbuttonhovercolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardbuttonhovercolor'),
+                '#ffffff'
+            ),
+            'customcardshadowcolor' => self::sanitize_color(
+                get_config('filter_courseprofesores', 'customcardshadowcolor'),
+                '#120ef2'
+            ),
             'rolesincluded'        => $rolesarray,
         ];
+    }
+
+
+    /**
+     * Validate a colour-picker value, returning a safe #rrggbb (or #rgb) string.
+     *
+     * @param mixed  $value   The stored config value.
+     * @param string $default Fallback returned when the value is not a valid hex colour.
+     * @return string A safe hex colour string.
+     */
+    protected static function sanitize_color($value, string $default): string {
+        $value = trim((string) $value);
+        if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $value)) {
+            return $value;
+        }
+        return $default;
+    }
+
+    /**
+     * Convert a #rrggbb (or #rgb) hex colour into an [r, g, b] triplet.
+     *
+     * @param string $hex A hex colour string (already sanitised).
+     * @return array{0: int, 1: int, 2: int} The red, green and blue components.
+     */
+    protected static function hex_to_rgb(string $hex): array {
+        $hex = ltrim($hex, '#');
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        return [
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
+        ];
+    }
+
+    /**
+     * Build an rgba() CSS value from a hex colour and an alpha channel.
+     *
+     * @param string $hex   A hex colour string (already sanitised).
+     * @param float  $alpha The alpha channel, between 0 and 1.
+     * @return string The rgba() CSS value.
+     */
+    protected static function rgba(string $hex, float $alpha): string {
+        [$r, $g, $b] = self::hex_to_rgb($hex);
+        return 'rgba(' . $r . ', ' . $g . ', ' . $b . ', ' . rtrim(rtrim(sprintf('%.2F', $alpha), '0'), '.') . ')';
+    }
+
+    /**
+     * Return a darker shade of the given hex colour, scaling each channel.
+     *
+     * @param string $hex    A hex colour string (already sanitised).
+     * @param float  $factor The multiplier applied to each channel (0-1).
+     * @return string The darkened #rrggbb colour.
+     */
+    protected static function darken_color(string $hex, float $factor): string {
+        [$r, $g, $b] = self::hex_to_rgb($hex);
+        return sprintf(
+            '#%02x%02x%02x',
+            (int) round($r * $factor),
+            (int) round($g * $factor),
+            (int) round($b * $factor)
+        );
     }
 
     /**
@@ -468,12 +563,6 @@ class text_filter extends \core_filters\text_filter {
             'showparticipants' => false,
         ];
 
-        if (self::$settingscache['officehours'] !== '') {
-            $data['showofficehours'] = true;
-            $data['officehours'] = self::$settingscache['officehours'];
-            $data['strofficehours'] = get_string('officehours', 'filter_courseprofesores');
-        }
-
         if (self::$settingscache['showparticipantslink']) {
             $coursecontext = \context_course::instance($course->id);
             if (has_capability('moodle/course:viewparticipants', $coursecontext)) {
@@ -594,16 +683,10 @@ class text_filter extends \core_filters\text_filter {
             ];
         }
 
-        if (self::$settingscache['onlinestatusformat'] === 'relative') {
-            $statustext = get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess));
-        } else {
-            $statustext = get_string('lastaccessdate', 'filter_courseprofesores', userdate($timeaccess));
-        }
-
         return [
             'statusclass'  => 'status-offline',
             'statusicon'   => 'fa-clock-o',
-            'statustext'   => $statustext,
+            'statustext'   => get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess)),
         ];
     }
 }
