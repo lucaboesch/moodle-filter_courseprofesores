@@ -8,7 +8,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:16
+        image: postgres:17
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -17,22 +17,55 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
 
       mariadb:
-        image: mariadb:10.11
+        image: mariadb:11.8
         env:
-          MYSQL_USER: 'root'
-          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
-          MYSQL_CHARACTER_SET_SERVER: "utf8mb4"
-          MYSQL_COLLATION_SERVER: "utf8mb4_unicode_ci"
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "1"
+          MARIADB_CHARACTER_SET_SERVER: utf8mb4
+          MARIADB_COLLATION_SERVER: utf8mb4_unicode_ci
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
+        options: --health-cmd="mariadb-admin ping" --health-interval 10s --health-timeout 5s --health-retries 3
 
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3']
-        moodle-branch: ['MOODLE_405_STABLE']
-        database: [pgsql, mariadb]
+        moodle-branch:
+          - 'MOODLE_502_STABLE'
+          - 'MOODLE_501_STABLE'
+          - 'MOODLE_500_STABLE'
+          - 'MOODLE_405_STABLE'
+        php:
+          - '8.4'
+          - '8.3'
+          - '8.2'
+          - '8.1'
+          - '8.0'
+        database: ['mariadb', 'pgsql']
+        exclude:
+          # Moodle 5.2 doesn't support PHP 8.0 or PHP 8.1 or PHP 8.2, so exclude this combination.
+          - moodle-branch: 'MOODLE_502_STABLE'
+            php: '8.2'
+          - moodle-branch: 'MOODLE_502_STABLE'
+            php: '8.1'
+          - moodle-branch: 'MOODLE_502_STABLE'
+            php: '8.0'
+          # Moodle 5.1 doesn't support PHP 8.0 or PHP 8.1 or PHP 8.2, so exclude this combination.
+          - moodle-branch: 'MOODLE_501_STABLE'
+            php: '8.2'
+          - moodle-branch: 'MOODLE_501_STABLE'
+            php: '8.1'
+          - moodle-branch: 'MOODLE_501_STABLE'
+            php: '8.0'
+          # Moodle 5.0 doesn't support PHP 8.0 or PHP 8.1, so exclude this combination.
+          - moodle-branch: 'MOODLE_500_STABLE'
+            php: '8.1'
+          - moodle-branch: 'MOODLE_500_STABLE'
+            php: '8.0'
+          # Moodle 4.5 doesn't support PHP 8.0 or PHP 8.4+, so exclude this combination.
+          - moodle-branch: 'MOODLE_405_STABLE'
+            php: '8.4'
+          - moodle-branch: 'MOODLE_405_STABLE'
+            php: '8.0'
 
     steps:
       - name: Check out repository code
