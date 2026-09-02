@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026080202;       // Plugin release date (YYYYMMDDXX).
+$plugin->version   = 2026090201;       // Plugin release date (YYYYMMDDXX).
 $plugin->requires  = 2024100700;       // Requires Moodle 4.5+ (MDL-82427).
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
