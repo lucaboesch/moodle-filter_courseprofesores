@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Course Profesores filter - main filter class (Moodle 5.0+ namespaced version).
+ * Course Profesores filter - main filter class (Moodle 4.5+ namespaced version).
  *
  * This filter replaces the {courseprofesores} tag with a list of
  * course profesores grouped by role, showing avatar, profile link,
@@ -31,7 +31,7 @@ namespace filter_courseprofesores;
 /**
  * Course Profesores text filter class.
  *
- * Implements the new namespaced filter API required by MDL-82427 (Moodle 4.5+/5.0+).
+ * Implements the namespaced filter API required by MDL-82427 (Moodle 4.5+).
  * The class must extend \core_filters\text_filter.
  *
  * @package    filter_courseprofesores
@@ -47,6 +47,18 @@ class text_filter extends \core_filters\text_filter {
 
     /** @var array|null Request-level cache of role lists. */
     protected static ?array $rolecache = null;
+
+    /**
+     * Reset the request-level static caches.
+     *
+     * This is intended for unit tests, so configuration changes and course
+     * data from previous tests do not leak into the next one.
+     */
+    public static function reset_caches(): void {
+        self::$profesorescache = [];
+        self::$settingscache = null;
+        self::$rolecache = null;
+    }
 
     /**
      * Load plugin settings into static cache.
@@ -66,8 +78,9 @@ class text_filter extends \core_filters\text_filter {
                 }
             }
         } else {
-            // Default roles if nothing is configured.
-            $rolesarray = ['editingteacher' => 1, 'teacher' => 1];
+            // Default roles if nothing is configured. Keep in sync with
+            // the defaults defined in settings.php.
+            $rolesarray = ['editingteacher' => 1, 'teacher' => 1, 'manager' => 1];
         }
 
         self::$settingscache = [
@@ -104,7 +117,7 @@ class text_filter extends \core_filters\text_filter {
      * @return string The filtered text.
      */
     public function filter($text, array $options = []): string {
-        global $COURSE, $PAGE, $SITE;
+        global $COURSE, $SITE;
 
         if (empty($text) || is_object($text)) {
             return $text;
@@ -130,14 +143,10 @@ class text_filter extends \core_filters\text_filter {
 
         $coursecontext = \context_course::instance($course->id);
 
-        // Check if user can view profesores - allow anyone with the specific capability
-        // or any user enrolled in the course. This ensures students can always see
-        // their teachers even if the capability hasn't been propagated to the
-        // student role due to a previous upgrade gap.
-        if (
-            !has_capability('filter/courseprofesores:viewprofesores', $coursecontext) &&
-            !is_enrolled($coursecontext)
-        ) {
+        // Check if the user can view profesores. The capability is granted to the
+        // student, teacher, editingteacher and manager archetypes (see db/access.php)
+        // and db/upgrade.php propagated it to existing roles.
+        if (!has_capability('filter/courseprofesores:viewprofesores', $coursecontext)) {
             return str_replace('{courseprofesores}', '', $text);
         }
 
@@ -159,8 +168,6 @@ class text_filter extends \core_filters\text_filter {
      * @return array Array of profesores grouped by role.
      */
     protected function get_course_profesores(int $courseid, \context $coursecontext): array {
-        global $DB;
-
         $cachekey = $courseid . '-' . $coursecontext->id;
         if (isset(self::$profesorescache[$cachekey])) {
             return self::$profesorescache[$cachekey];
@@ -224,10 +231,11 @@ class text_filter extends \core_filters\text_filter {
                     'lastnamephonetic'  => $record->lastnamephonetic ?? '',
                     'middlename'        => $record->middlename ?? '',
                     'alternatename'     => $record->alternatename ?? '',
+                    // Email is required by \user_picture, which reloads the user from
+                    // the database when any of its required fields is missing.
                     'email'             => $record->email,
                     'picture'           => $record->picture,
                     'imagealt'          => $record->imagealt,
-                    'username'          => $record->username,
                     'department'        => $record->department,
                     'institution'       => $record->institution,
                     'fullname'          => fullname($record),
@@ -255,8 +263,8 @@ class text_filter extends \core_filters\text_filter {
 
         $sql = "SELECT u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
                        u.middlename, u.alternatename, u.email, u.picture, u.imagealt,
-                       u.username, u.department, u.institution,
-                       r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
+                       u.department, u.institution,
+                       r.id AS roleid, r.shortname AS roleshortname
                   FROM {role_assignments} ra
                   JOIN {user} u ON u.id = ra.userid
                   JOIN {role} r ON r.id = ra.roleid
@@ -289,8 +297,8 @@ class text_filter extends \core_filters\text_filter {
 
         $sql = "SELECT ra.contextid, u.id, u.firstname, u.lastname, u.firstnamephonetic, u.lastnamephonetic,
                        u.middlename, u.alternatename, u.email, u.picture, u.imagealt,
-                       u.username, u.department, u.institution,
-                       r.id AS roleid, r.name AS rolename, r.shortname AS roleshortname
+                       u.department, u.institution,
+                       r.id AS roleid, r.shortname AS roleshortname
                   FROM {role_assignments} ra
                   JOIN {user} u ON u.id = ra.userid
                   JOIN {role} r ON r.id = ra.roleid
@@ -325,14 +333,14 @@ class text_filter extends \core_filters\text_filter {
     }
 
     /**
-     * Render the profesores list as HTML.
+     * Render the profesores list as HTML using the mustache template.
      *
      * @param array     $profesores Profesores grouped by role.
      * @param \stdClass $course     The course object.
      * @return string HTML output.
      */
     protected function render_profesores(array $profesores, \stdClass $course): string {
-        global $USER, $PAGE, $DB;
+        global $USER, $DB, $CFG, $OUTPUT;
 
         $this->load_settings();
 
@@ -350,13 +358,7 @@ class text_filter extends \core_filters\text_filter {
             $containerclass .= ' card-color-' . $cardcolor;
         }
 
-        $html = '<div class="' . $containerclass . '">';
-
-        static $messagingenabled = null;
-        if ($messagingenabled === null) {
-            global $CFG;
-            $messagingenabled = !empty($CFG->messaging);
-        }
+        $messagingenabled = !empty($CFG->messaging);
 
         // Collect all profesor IDs (excluding the current user) once. They are
         // reused by the unread-messages and last-access queries below.
@@ -425,155 +427,155 @@ class text_filter extends \core_filters\text_filter {
             );
         }
 
+        $groups = [];
         foreach ($profesores as $rolegroup) {
             if (empty($rolegroup['users'])) {
                 continue;
             }
 
-            $escapedrolename = s($rolegroup['name']);
             $stringkey = 'role_' . $rolegroup['shortname'];
             if (get_string_manager()->string_exists($stringkey, 'filter_courseprofesores')) {
-                $roletitle = get_string($stringkey, 'filter_courseprofesores', $escapedrolename);
+                $roletitle = get_string($stringkey, 'filter_courseprofesores', $rolegroup['name']);
             } else {
-                $roletitle = $escapedrolename;
+                $roletitle = $rolegroup['name'];
             }
 
-            $html .= '<div class="profesores-role-group">';
-            $html .= '<h4 class="profesores-role-title">' . $roletitle . '</h4>';
-            $html .= '<div class="profesores-list">';
-
+            $users = [];
             foreach ($rolegroup['users'] as $profesor) {
-                $user       = (object) $profesor;
-                $profileurl = new \moodle_url('/user/view.php', ['id' => $user->id, 'course' => $course->id]);
-                $countreceived = $unreadreceived[$user->id] ?? 0;
-                $countsent = $unreadsent[$user->id] ?? 0;
-
-                $html .= '<div class="profesor-card">';
-
-                if ($countreceived > 0 || $countsent > 0) {
-                    $html .= '<div class="profesor-badges">';
-                    if ($countreceived > 0) {
-                        $html .= '<div class="profesor-badge badge-received" title="' .
-                            get_string('unreadmessages_received', 'filter_courseprofesores') . '">';
-                        $html .= '<i class="icon fa fa-commenting-o fa-fw" aria-hidden="true"></i>';
-                        $html .= '<span class="badge-count">' . $countreceived . '</span>';
-                        $html .= '</div>';
-                    }
-                    if ($countsent > 0) {
-                        $html .= '<div class="profesor-badge badge-sent" title="' .
-                            get_string('unreadmessages_sent', 'filter_courseprofesores') . '">';
-                        $html .= '<i class="icon fa fa-paper-plane-o fa-fw" aria-hidden="true"></i>';
-                        $html .= '<span class="badge-count">' . $countsent . '</span>';
-                        $html .= '</div>';
-                    }
-                    $html .= '</div>';
-                }
-
-                if (self::$settingscache['showavatars']) {
-                    $userpicture        = new \user_picture($user);
-                    $userpicture->size  = 1;
-                    $pictureurl         = $userpicture->get_url($PAGE)->out(false);
-
-                    $html .= '<div class="profesor-avatar">';
-                    $html .= '<a href="' . $profileurl->out(false) . '" title="' .
-                        get_string('viewprofile', 'filter_courseprofesores') . '">';
-                    $html .= '<img src="' . s($pictureurl) . '" alt="' . s($user->fullname) . '" class="userpicture" />';
-                    $html .= '</a>';
-                    $html .= '</div>';
-                }
-
-                $html .= '<div class="profesor-info">';
-                $html .= '<a href="' . $profileurl->out(false) . '" class="profesor-name">' . s($user->fullname) . '</a>';
-
-                // Online status / last access indicator (not shown on the current user's own card).
-                if (self::$settingscache['showonlinestatus'] && $USER->id != $user->id && !empty($lastaccesses[$user->id])) {
-                    $html .= $this->render_online_status((int) $lastaccesses[$user->id]);
-                }
-
-                $showdetails = (self::$settingscache['showdepartment'] && !empty($user->department)) ||
-                    (self::$settingscache['showinstitution'] && !empty($user->institution));
-
-                if ($showdetails) {
-                    $details = [];
-                    if (self::$settingscache['showdepartment'] && !empty($user->department)) {
-                        $details[] = s($user->department);
-                    }
-                    if (self::$settingscache['showinstitution'] && !empty($user->institution)) {
-                        $details[] = s($user->institution);
-                    }
-                    $html .= '<div class="profesor-details">' . implode(', ', $details) . '</div>';
-                }
-
-                if (self::$settingscache['showmessagelink']) {
-                    if ($messagingenabled && $USER->id != $user->id) {
-                        if (\core_message\api::can_send_message($USER->id, $user->id)) {
-                            $messagelink = new \moodle_url('/message/index.php', ['id' => $user->id]);
-                            $html .= '<div class="profesor-actions">';
-                            $html .= '<a href="' . $messagelink->out(false) .
-                                '" class="profesor-action-link message-link" title="' .
-                                get_string('sendmessage', 'filter_courseprofesores') . '">';
-                            $html .= '<i class="icon fa fa-envelope fa-fw" aria-hidden="true"></i> ';
-                            $html .= get_string('sendmessage', 'filter_courseprofesores');
-                            $html .= '</a>';
-                            $html .= '</div>';
-                        }
-                    }
-                }
-
-                $html .= '</div>'; // End info.
-                $html .= '</div>'; // End card.
+                $users[] = $this->build_card_context((object) $profesor, $course, $lastaccesses,
+                    $unreadreceived, $unreadsent, $messagingenabled);
             }
 
-            $html .= '</div>'; // End list.
-            $html .= '</div>'; // End group.
+            $groups[] = [
+                'roletitle' => $roletitle,
+                'users'     => $users,
+            ];
         }
+
+        $data = [
+            'containerclass' => $containerclass,
+            'groups'         => $groups,
+            'showparticipants' => false,
+        ];
 
         if (self::$settingscache['showparticipantslink']) {
             $coursecontext = \context_course::instance($course->id);
             if (has_capability('moodle/course:viewparticipants', $coursecontext)) {
                 $participantsurl = new \moodle_url('/user/index.php', ['id' => $course->id]);
-                $html .= '<div class="profesores-footer">';
-                $html .= '<a href="' . $participantsurl->out(false) . '" class="participants-link">';
-                $html .= '<i class="icon fa fa-users fa-fw" aria-hidden="true"></i> ';
-                $html .= get_string('viewparticipants', 'filter_courseprofesores');
-                $html .= '</a>';
-                $html .= '</div>';
+                $data['showparticipants'] = true;
+                $data['participantsurl'] = $participantsurl->out(false);
+                $data['strviewparticipants'] = get_string('viewparticipants', 'filter_courseprofesores');
             }
         }
 
-        $html .= '</div>'; // End container.
-        return $html;
+        return $OUTPUT->render_from_template('filter_courseprofesores/profesores', $data);
     }
 
     /**
-     * Render the online status / last access indicator for a profesor.
+     * Build the template context for a single profesor card.
+     *
+     * @param \stdClass $user             The profesor record (as object).
+     * @param \stdClass $course           The course object.
+     * @param array     $lastaccesses     Map of userid => timeaccess.
+     * @param array     $unreadreceived   Map of userid => unread received count.
+     * @param array     $unreadsent       Map of userid => unread sent count.
+     * @param bool      $messagingenabled Whether messaging is enabled site-wide.
+     * @return array Template context for the card.
+     */
+    protected function build_card_context(\stdClass $user, \stdClass $course, array $lastaccesses,
+        array $unreadreceived, array $unreadsent, bool $messagingenabled): array {
+        global $USER, $PAGE;
+
+        $profileurl = new \moodle_url('/user/view.php', ['id' => $user->id, 'course' => $course->id]);
+
+        $card = [
+            'fullname'       => $user->fullname,
+            'profileurl'     => $profileurl->out(false),
+            'showavatar'     => self::$settingscache['showavatars'],
+            'strviewprofile' => get_string('viewprofile', 'filter_courseprofesores'),
+            'showmessage'    => false,
+        ];
+
+        $countreceived = $unreadreceived[$user->id] ?? 0;
+        $countsent = $unreadsent[$user->id] ?? 0;
+        $card['badges'] = [];
+        if ($countreceived > 0) {
+            $card['badges'][] = [
+                'badgeclass'  => 'badge-received',
+                'badgeicon'   => 'fa-commenting-o',
+                'badgecount'  => $countreceived,
+                'badgelabel'  => get_string('unreadmessages_received', 'filter_courseprofesores'),
+            ];
+        }
+        if ($countsent > 0) {
+            $card['badges'][] = [
+                'badgeclass'  => 'badge-sent',
+                'badgeicon'   => 'fa-paper-plane-o',
+                'badgecount'  => $countsent,
+                'badgelabel'  => get_string('unreadmessages_sent', 'filter_courseprofesores'),
+            ];
+        }
+
+        if ($card['showavatar']) {
+            $userpicture       = new \user_picture($user);
+            $userpicture->size = 1;
+            $card['pictureurl'] = $userpicture->get_url($PAGE)->out(false);
+        }
+
+        // Online status / last access indicator (not shown on the current user's own card).
+        if (self::$settingscache['showonlinestatus'] && $USER->id != $user->id && !empty($lastaccesses[$user->id])) {
+            $card['status'] = $this->get_online_status((int) $lastaccesses[$user->id]);
+        }
+
+        $details = [];
+        if (self::$settingscache['showdepartment'] && !empty($user->department)) {
+            $details[] = $user->department;
+        }
+        if (self::$settingscache['showinstitution'] && !empty($user->institution)) {
+            $details[] = $user->institution;
+        }
+        if (!empty($details)) {
+            $card['details'] = implode(', ', $details);
+        }
+
+        if (self::$settingscache['showmessagelink'] && $messagingenabled && $USER->id != $user->id) {
+            if (\core_message\api::can_send_message($USER->id, $user->id)) {
+                $messagelink = new \moodle_url('/message/index.php', ['id' => $user->id]);
+                $card['showmessage'] = true;
+                $card['messagelink'] = $messagelink->out(false);
+                $card['strsendmessage'] = get_string('sendmessage', 'filter_courseprofesores');
+            }
+        }
+
+        return $card;
+    }
+
+    /**
+     * Get the template data for the online status / last access indicator.
      *
      * A profesor is considered online when their last access to the course
      * happened within the last 5 minutes, matching the threshold used by
      * the core Online Users block.
      *
      * @param int $timeaccess Timestamp of the profesor's last access to the course.
-     * @return string HTML output.
+     * @return array Template context for the status indicator.
      */
-    protected function render_online_status(int $timeaccess): string {
+    protected function get_online_status(int $timeaccess): array {
         $now = time();
         $isonline = ($timeaccess >= $now - 300);
 
         if ($isonline) {
-            $statustext  = get_string('online', 'filter_courseprofesores');
-            $statusclass = 'status-online';
-            $icon        = 'fa-circle';
-        } else {
-            $statustext  = get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess));
-            $statusclass = 'status-offline';
-            $icon        = 'fa-clock-o';
+            return [
+                'statusclass'  => 'status-online',
+                'statusicon'   => 'fa-circle',
+                'statustext'   => get_string('online', 'filter_courseprofesores'),
+            ];
         }
 
-        $html  = '<div class="profesor-status ' . $statusclass . '">';
-        $html .= '<i class="icon fa ' . $icon . ' fa-fw" aria-hidden="true"></i>';
-        $html .= '<span class="profesor-status-text">' . $statustext . '</span>';
-        $html .= '</div>';
-
-        return $html;
+        return [
+            'statusclass'  => 'status-offline',
+            'statusicon'   => 'fa-clock-o',
+            'statustext'   => get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess)),
+        ];
     }
 }

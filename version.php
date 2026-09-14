@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026090201;       // Plugin release date (YYYYMMDDXX).
+$plugin->version   = 2026091401;       // Plugin release date (YYYYMMDDXX).
 $plugin->requires  = 2024100700;       // Requires Moodle 4.5+ (MDL-82427).
 $plugin->component = 'filter_courseprofesores';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '2.1.1';          // Added: online status / last access indicator for profesores.
+$plugin->release   = '2.1.2';          // Cleanup: removed legacy shim, capability-only visibility, privacy test.
 $plugin->dependencies = [];

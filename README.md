@@ -14,7 +14,7 @@ A filter plugin for Moodle that replaces the `{courseprofesores}` tag with a vis
 - **Display styles**: Choose between Cards, List or Compact layouts from the plugin settings
 - **Participants link**: Link to the full course participants list
 - **Role-based**: Only shows users with teaching roles (editing teacher, teacher, manager), configurable from the settings page
-- **Student-friendly visibility**: Enrolled users (such as students) can always see their teachers, even if the view capability has not been propagated to their role
+- **Capability-based visibility**: Teachers are shown to users granted the `filter/courseprofesores:viewprofesores` capability (granted by default to students and teaching roles)
 - **Context-aware**: Falls back to higher contexts if no teachers are found at course level
 - **Privacy compliant**: Does not store personal data (GDPR ready)
 - **Bilingual**: English and Spanish support

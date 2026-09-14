@@ -16,15 +16,17 @@
 
 namespace filter_courseprofesores;
 
+use PHPUnit\Framework\Attributes\CoversClass;
+
 /**
  * Unit tests for the courseprofesores filter.
  *
  * @package    filter_courseprofesores
  * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @covers     \filter_courseprofesores\text_filter
  * @group      filter_courseprofesores
  */
+#[CoversClass(\filter_courseprofesores\text_filter::class)]
 final class filter_test extends \advanced_testcase {
     /** @var \filter_courseprofesores\text_filter The filter instance. */
     protected $filter;
@@ -39,11 +41,7 @@ final class filter_test extends \advanced_testcase {
 
         // Reset the filter's static caches so config changes and course data
         // from previous tests do not leak into this one.
-        $reflection = new \ReflectionClass(\filter_courseprofesores\text_filter::class);
-        foreach (['settingscache', 'profesorescache', 'rolecache'] as $propertyname) {
-            $property = $reflection->getProperty($propertyname);
-            $property->setValue(null, $propertyname === 'profesorescache' ? [] : null);
-        }
+        \filter_courseprofesores\text_filter::reset_caches();
     }
 
     /**
@@ -379,5 +377,87 @@ final class filter_test extends \advanced_testcase {
         $COURSE = $originalcourse;
 
         $this->assertStringNotContainsString('profesor-status', $result);
+    }
+
+    /**
+     * Test that the tag is replaced when its braces are HTML entities.
+     */
+    public function test_tag_replaced_with_html_entities(): void {
+        global $COURSE;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Jane', 'lastname' => 'Doe']);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('Teachers: &#123;courseprofesores&#125;', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringNotContainsString('&#123;courseprofesores&#125;', $result);
+        $this->assertStringNotContainsString('{courseprofesores}', $result);
+        $this->assertStringContainsString('Jane', $result);
+    }
+
+    /**
+     * Test that the tag is removed for users without the view capability.
+     */
+    public function test_tag_removed_without_capability(): void {
+        global $COURSE;
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'John', 'lastname' => 'Doe']);
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+
+        // A user without any role in the course should not see the teachers.
+        $outsider = $this->getDataGenerator()->create_user();
+        $this->setUser($outsider);
+
+        $text = 'Hidden: {courseprofesores} End';
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter($text, ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringNotContainsString('{courseprofesores}', $result);
+        $this->assertStringNotContainsString('John', $result);
+        $this->assertStringContainsString('Hidden:  End', $result);
+    }
+
+    /**
+     * Test that teachers assigned at the parent category are shown in the course.
+     */
+    public function test_profesores_fallback_to_parent_context(): void {
+        global $COURSE, $DB;
+
+        $category = $this->getDataGenerator()->create_category();
+        $course = $this->getDataGenerator()->create_course(['category' => $category->id]);
+
+        $teacher = $this->getDataGenerator()->create_user(['firstname' => 'Categorized', 'lastname' => 'Teacher']);
+        $editingteacherroleid = $DB->get_field('role', 'id', ['shortname' => 'editingteacher'], MUST_EXIST);
+        role_assign($editingteacherroleid, $teacher->id, \context_coursecat::instance($category->id)->id);
+
+        $student = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($student->id, $course->id, 'student');
+
+        $this->setUser($student);
+
+        $context = \context_course::instance($course->id);
+
+        $originalcourse = $COURSE;
+        $COURSE = $course;
+        $result = $this->filter->filter('{courseprofesores}', ['context' => $context]);
+        $COURSE = $originalcourse;
+
+        $this->assertStringContainsString('Categorized', $result);
     }
 }

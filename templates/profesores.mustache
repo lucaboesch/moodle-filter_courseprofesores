@@ -1,0 +1,116 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template filter_courseprofesores/profesores
+
+    List of course teachers rendered by the courseprofesores filter.
+
+    Example context (json):
+    {
+        "containerclass": "filter-courseprofesores-container",
+        "groups": [
+            {
+                "roletitle": "Teachers",
+                "users": [
+                    {
+                        "fullname": "John Doe",
+                        "profileurl": "http://example.com/moodle/user/view.php?id=3&course=2",
+                        "pictureurl": "http://example.com/moodle/theme/image.php/core/av_f1",
+                        "showavatar": true,
+                        "strviewprofile": "View profile",
+                        "details": "Mathematics",
+                        "badges": [
+                            {
+                                "badgeclass": "badge-received",
+                                "badgeicon": "fa-commenting-o",
+                                "badgecount": 2,
+                                "badgelabel": "Unread messages from this teacher"
+                            }
+                        ],
+                        "status": {
+                            "statusclass": "status-online",
+                            "statusicon": "fa-circle",
+                            "statustext": "Online now"
+                        },
+                        "showmessage": true,
+                        "messagelink": "http://example.com/moodle/message/index.php?id=3",
+                        "strsendmessage": "Send message"
+                    }
+                ]
+            }
+        ],
+        "showparticipants": true,
+        "participantsurl": "http://example.com/moodle/user/index.php?id=2",
+        "strviewparticipants": "View all participants"
+    }
+}}
+<div class="{{containerclass}}">
+    {{#groups}}
+    <div class="profesores-role-group">
+        <h4 class="profesores-role-title">{{roletitle}}</h4>
+        <div class="profesores-list">
+            {{#users}}
+            <div class="profesor-card">
+                {{#badges.0}}
+                <div class="profesor-badges">
+                    {{#badges}}
+                    <div class="profesor-badge {{badgeclass}}" title="{{badgelabel}}" aria-label="{{badgelabel}}">
+                        <i class="icon fa {{badgeicon}} fa-fw" aria-hidden="true"></i>
+                        <span class="badge-count">{{badgecount}}</span>
+                    </div>
+                    {{/badges}}
+                </div>
+                {{/badges.0}}
+                {{#showavatar}}
+                <div class="profesor-avatar">
+                    <a href="{{{profileurl}}}" title="{{strviewprofile}}">
+                        <img src="{{{pictureurl}}}" alt="{{fullname}}" class="userpicture" />
+                    </a>
+                </div>
+                {{/showavatar}}
+                <div class="profesor-info">
+                    <a href="{{{profileurl}}}" class="profesor-name">{{fullname}}</a>
+                    {{#status}}
+                    <div class="profesor-status {{statusclass}}">
+                        <i class="icon fa {{statusicon}} fa-fw" aria-hidden="true"></i>
+                        <span class="profesor-status-text">{{statustext}}</span>
+                    </div>
+                    {{/status}}
+                    {{#details}}
+                    <div class="profesor-details">{{details}}</div>
+                    {{/details}}
+                    {{#showmessage}}
+                    <div class="profesor-actions">
+                        <a href="{{{messagelink}}}" class="profesor-action-link message-link" title="{{strsendmessage}}">
+                            <i class="icon fa fa-envelope fa-fw" aria-hidden="true"></i> {{strsendmessage}}
+                        </a>
+                    </div>
+                    {{/showmessage}}
+                </div>
+            </div>
+            {{/users}}
+        </div>
+    </div>
+    {{/groups}}
+    {{#showparticipants}}
+    <div class="profesores-footer">
+        <a href="{{{participantsurl}}}" class="participants-link">
+            <i class="icon fa fa-users fa-fw" aria-hidden="true"></i> {{strviewparticipants}}
+        </a>
+    </div>
+    {{/showparticipants}}
+</div>
