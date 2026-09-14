@@ -16,17 +16,15 @@
 
 namespace filter_courseprofesores;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-
 /**
  * Unit tests for the courseprofesores filter.
  *
  * @package    filter_courseprofesores
  * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \filter_courseprofesores\text_filter
  * @group      filter_courseprofesores
  */
-#[CoversClass(\filter_courseprofesores\text_filter::class)]
 final class filter_test extends \advanced_testcase {
     /** @var \filter_courseprofesores\text_filter The filter instance. */
     protected $filter;

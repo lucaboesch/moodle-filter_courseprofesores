@@ -32,6 +32,8 @@ use core_privacy\manager;
  *
  * @copyright  2026 Daniel Ferrada
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @covers     \filter_courseprofesores\privacy\provider
+ * @group      filter_courseprofesores
  */
 final class provider_test extends \advanced_testcase {
     /**

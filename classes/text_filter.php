@@ -442,8 +442,14 @@ class text_filter extends \core_filters\text_filter {
 
             $users = [];
             foreach ($rolegroup['users'] as $profesor) {
-                $users[] = $this->build_card_context((object) $profesor, $course, $lastaccesses,
-                    $unreadreceived, $unreadsent, $messagingenabled);
+                $users[] = $this->build_card_context(
+                    (object) $profesor,
+                    $course,
+                    $lastaccesses,
+                    $unreadreceived,
+                    $unreadsent,
+                    $messagingenabled
+                );
             }
 
             $groups[] = [
@@ -482,8 +488,14 @@ class text_filter extends \core_filters\text_filter {
      * @param bool      $messagingenabled Whether messaging is enabled site-wide.
      * @return array Template context for the card.
      */
-    protected function build_card_context(\stdClass $user, \stdClass $course, array $lastaccesses,
-        array $unreadreceived, array $unreadsent, bool $messagingenabled): array {
+    protected function build_card_context(
+        \stdClass $user,
+        \stdClass $course,
+        array $lastaccesses,
+        array $unreadreceived,
+        array $unreadsent,
+        bool $messagingenabled
+    ): array {
         global $USER, $PAGE;
 
         $profileurl = new \moodle_url('/user/view.php', ['id' => $user->id, 'course' => $course->id]);
