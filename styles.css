@@ -67,8 +67,24 @@
     --brand-color-hover: #b00b2d;
 }
 
+.filter-courseprofesores-container.accent-color-bordeaux {
+    --brand-color: #a61e4d;
+    --brand-color-hover: #82183c;
+}
+
+.filter-courseprofesores-container.accent-color-green {
+    --brand-color: #2b8a3e;
+    --brand-color-hover: #226e32;
+}
+
+.filter-courseprofesores-container.accent-color-purple {
+    --brand-color: #862e9c;
+    --brand-color-hover: #6b257d;
+}
+
 /* Card background color customizations */
-.filter-courseprofesores-container.card-color-orange .profesor-card {
+.filter-courseprofesores-container.card-color-orange .profesor-card,
+.filter-courseprofesores-container.card-color-orange .profesores-officehours {
     --card-bg: #fc6500;
     --card-border: #e05a00;
     --text-primary: #ffffff;
@@ -91,7 +107,8 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-.filter-courseprofesores-container.card-color-blue .profesor-card {
+.filter-courseprofesores-container.card-color-blue .profesor-card,
+.filter-courseprofesores-container.card-color-blue .profesores-officehours {
     --card-bg: #120ef2;
     --card-border: #0e0bca;
     --text-primary: #ffffff;
@@ -114,7 +131,8 @@
     color: rgba(255, 255, 255, 0.8);
 }
 
-.filter-courseprofesores-container.card-color-pink .profesor-card {
+.filter-courseprofesores-container.card-color-pink .profesor-card,
+.filter-courseprofesores-container.card-color-pink .profesores-officehours {
     --card-bg: #f20e3f;
     --card-border: #c00b32;
     --text-primary: #ffffff;
@@ -134,6 +152,78 @@
 }
 
 .filter-courseprofesores-container.card-color-pink .profesor-name:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.filter-courseprofesores-container.card-color-bordeaux .profesor-card,
+.filter-courseprofesores-container.card-color-bordeaux .profesores-officehours {
+    --card-bg: #a61e4d;
+    --card-border: #82183c;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --btn-bg: rgba(255, 255, 255, 0.15);
+    --btn-bg-hover: rgba(255, 255, 255, 0.3);
+    --card-shadow: 0 4px 15px -2px rgba(166, 30, 77, 0.4);
+    --card-shadow-hover: 0 10px 30px -4px rgba(166, 30, 77, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-bordeaux .profesor-card:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-bordeaux .profesor-name {
+    color: #ffffff;
+}
+
+.filter-courseprofesores-container.card-color-bordeaux .profesor-name:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.filter-courseprofesores-container.card-color-green .profesor-card,
+.filter-courseprofesores-container.card-color-green .profesores-officehours {
+    --card-bg: #2b8a3e;
+    --card-border: #226e32;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --btn-bg: rgba(255, 255, 255, 0.15);
+    --btn-bg-hover: rgba(255, 255, 255, 0.3);
+    --card-shadow: 0 4px 15px -2px rgba(43, 138, 62, 0.4);
+    --card-shadow-hover: 0 10px 30px -4px rgba(43, 138, 62, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-green .profesor-card:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-green .profesor-name {
+    color: #ffffff;
+}
+
+.filter-courseprofesores-container.card-color-green .profesor-name:hover {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.filter-courseprofesores-container.card-color-purple .profesor-card,
+.filter-courseprofesores-container.card-color-purple .profesores-officehours {
+    --card-bg: #862e9c;
+    --card-border: #6b257d;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.8);
+    --btn-bg: rgba(255, 255, 255, 0.15);
+    --btn-bg-hover: rgba(255, 255, 255, 0.3);
+    --card-shadow: 0 4px 15px -2px rgba(134, 46, 156, 0.4);
+    --card-shadow-hover: 0 10px 30px -4px rgba(134, 46, 156, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-purple .profesor-card:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.filter-courseprofesores-container.card-color-purple .profesor-name {
+    color: #ffffff;
+}
+
+.filter-courseprofesores-container.card-color-purple .profesor-name:hover {
     color: rgba(255, 255, 255, 0.8);
 }
 
@@ -351,6 +441,34 @@
 
 .filter-courseprofesores-container .profesor-action-link .icon {
     font-size: 0.8rem;
+}
+
+.filter-courseprofesores-container .profesores-officehours {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-left: 3px solid var(--brand-color);
+    border-radius: 0.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.filter-courseprofesores-container .profesores-officehours .icon {
+    color: var(--brand-color);
+}
+
+.filter-courseprofesores-container .profesores-officehours-title {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.filter-courseprofesores-container .profesores-officehours-text {
+    white-space: pre-line;
 }
 
 .filter-courseprofesores-container .profesores-footer {

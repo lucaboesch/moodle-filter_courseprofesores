@@ -105,6 +105,10 @@ class text_filter extends \core_filters\text_filter {
                 '',
                 get_config('filter_courseprofesores', 'cardcolor') ?: 'default'
             ),
+            'officehours'          => trim((string) get_config('filter_courseprofesores', 'officehours')),
+            'onlinestatusformat'   => get_config('filter_courseprofesores', 'onlinestatusformat') === 'relative'
+                ? 'relative'
+                : 'absolute',
             'rolesincluded'        => $rolesarray,
         ];
     }
@@ -464,6 +468,12 @@ class text_filter extends \core_filters\text_filter {
             'showparticipants' => false,
         ];
 
+        if (self::$settingscache['officehours'] !== '') {
+            $data['showofficehours'] = true;
+            $data['officehours'] = self::$settingscache['officehours'];
+            $data['strofficehours'] = get_string('officehours', 'filter_courseprofesores');
+        }
+
         if (self::$settingscache['showparticipantslink']) {
             $coursecontext = \context_course::instance($course->id);
             if (has_capability('moodle/course:viewparticipants', $coursecontext)) {
@@ -584,10 +594,16 @@ class text_filter extends \core_filters\text_filter {
             ];
         }
 
+        if (self::$settingscache['onlinestatusformat'] === 'relative') {
+            $statustext = get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess));
+        } else {
+            $statustext = get_string('lastaccessdate', 'filter_courseprofesores', userdate($timeaccess));
+        }
+
         return [
             'statusclass'  => 'status-offline',
             'statusicon'   => 'fa-clock-o',
-            'statustext'   => get_string('lastaccess', 'filter_courseprofesores', format_time($now - $timeaccess)),
+            'statustext'   => $statustext,
         ];
     }
 }

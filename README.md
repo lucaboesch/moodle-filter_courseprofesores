@@ -9,8 +9,9 @@ A filter plugin for Moodle that replaces the `{courseprofesores}` tag with a vis
 - **Avatar display**: Shows each teacher's profile picture
 - **Profile link**: Direct link to each teacher's profile page
 - **Messaging link**: Direct link to send a message through Moodle's messaging system
-- **Online status**: Indicates whether the teacher is currently online (green dot) or shows their last access to the course, so students know when to contact them
-- **Card color options**: Customizable accent color (buttons, borders and highlights) and card background color, with predefined palettes: standard blue, vibrant orange, deep blue/violet and hot pink/red
+- **Online status**: Indicates whether the teacher is currently online (“Online now”, green dot) or shows their last access to the course, so students know when to contact them. The last access can be rendered as an absolute date or as relative time from the plugin settings
+- **Office hours**: Optional free-text notice (line breaks preserved) shown to students above the teachers list, e.g. “Monday and Wednesday, 15:00-17:00”. Its background, border and text colors follow the configured **Card background color**, in parallel with the teacher cards
+- **Card color options**: Customizable accent color (buttons, borders and highlights) and card background color, with predefined palettes: standard blue, vibrant orange, deep blue/violet, hot pink/red, bordeaux, green and purple
 - **Display styles**: Choose between Cards, List or Compact layouts from the plugin settings
 - **Participants link**: Link to the full course participants list
 - **Role-based**: Only shows users with teaching roles (editing teacher, teacher, manager), configurable from the settings page
@@ -56,11 +57,13 @@ The plugin provides the following settings at **Site administration > Plugins > 
 | **Show institution** | Display teacher institution information if available |
 | **Show message link** | Display a direct link to send a message to the teacher |
 | **Show online status** | Display whether the teacher is online now or their last course access |
+| **Last access format** | Format used for offline teachers: absolute date (e.g. 14/10/2026 15:30) or relative time (e.g. 2 hours ago) |
+| **Office hours** | Optional free-text notice shown to students above the teachers list; line breaks are preserved in the cards layout |
 | **Show participants link** | Display a link to the course participants page |
 | **Roles to include** | Select which course roles are displayed as teachers |
 | **Display style** | Choose the layout: Cards, List or Compact |
-| **Accent color** | Accent color for teacher cards and buttons: Standard blue (#0f6cbf), Vibrant orange (#fc6500), Deep blue/violet (#120ef2) or Hot pink/red (#f20e3f) |
-| **Card background color** | Background color for the teacher cards: Theme default, Warm orange (#fc6500), Deep blue (#120ef2) or Hot pink/red (#f20e3f) |
+| **Accent color** | Accent color for teacher cards and buttons: Standard blue (#0f6cbf), Vibrant orange (#fc6500), Deep blue/violet (#120ef2), Hot pink/red (#f20e3f), Bordeaux (#a61e4d), Green (#2b8a3e) or Purple (#862e9c) |
+| **Card background color** | Background color for the teacher cards: Theme default, Warm orange (#fc6500), Deep blue (#120ef2), Hot pink/red (#f20e3f), Bordeaux (#a61e4d), Green (#2b8a3e) or Purple (#862e9c) |
 
 ## Usage
 
@@ -99,6 +102,11 @@ The filter generates HTML with the following structure:
 
 ```html
 <div class="filter-courseprofesores-container">
+    <div class="profesores-officehours">
+        <i class="icon fa fa-clock-o fa-fw" aria-hidden="true"></i>
+        <span class="profesores-officehours-title">Office hours:</span>
+        <span class="profesores-officehours-text">Monday and Wednesday, 15:00-17:00</span>
+    </div>
     <div class="profesores-role-group">
         <h4 class="profesores-role-title">Editing teacher</h4>
         <div class="profesores-list">
@@ -134,6 +142,7 @@ The filter generates HTML with the following structure:
 |-------|-------------|
 | `.filter-courseprofesores-container` | Main container |
 | `.profesores-role-group` | Container for each role group |
+| `.profesores-officehours` | Office hours notice container (uses the configured card colors) |
 | `.profesores-role-title` | Role title |
 | `.profesores-list` | List of teachers within a role |
 | `.profesor-card` | Individual teacher card |

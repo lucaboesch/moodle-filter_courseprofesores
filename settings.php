@@ -66,11 +66,30 @@ if ($ADMIN->fulltree) {
         1
     ));
 
+    $settings->add(new admin_setting_configselect(
+        'filter_courseprofesores/onlinestatusformat',
+        get_string('onlinestatusformat', 'filter_courseprofesores'),
+        get_string('onlinestatusformat_desc', 'filter_courseprofesores'),
+        'absolute',
+        [
+            'absolute' => get_string('statusformat_absolute', 'filter_courseprofesores'),
+            'relative' => get_string('statusformat_relative', 'filter_courseprofesores'),
+        ]
+    ));
+
     $settings->add(new admin_setting_configcheckbox(
         'filter_courseprofesores/showparticipantslink',
         get_string('showparticipantslink', 'filter_courseprofesores'),
         get_string('showparticipantslink_desc', 'filter_courseprofesores'),
         1
+    ));
+
+    $settings->add(new admin_setting_configtextarea(
+        'filter_courseprofesores/officehours',
+        get_string('officehours', 'filter_courseprofesores'),
+        get_string('officehours_desc', 'filter_courseprofesores'),
+        '',
+        PARAM_TEXT
     ));
 
     $roleoptions = [];
@@ -107,6 +126,9 @@ if ($ADMIN->fulltree) {
         'orange' => get_string('color_orange', 'filter_courseprofesores'),
         'blue' => get_string('color_blue', 'filter_courseprofesores'),
         'pink' => get_string('color_pink', 'filter_courseprofesores'),
+        'bordeaux' => get_string('color_bordeaux', 'filter_courseprofesores'),
+        'green' => get_string('color_green', 'filter_courseprofesores'),
+        'purple' => get_string('color_purple', 'filter_courseprofesores'),
     ];
 
     $settings->add(new admin_setting_configselect(
@@ -122,6 +144,9 @@ if ($ADMIN->fulltree) {
         'orange' => get_string('cardcolor_orange', 'filter_courseprofesores'),
         'blue' => get_string('cardcolor_blue', 'filter_courseprofesores'),
         'pink' => get_string('cardcolor_pink', 'filter_courseprofesores'),
+        'bordeaux' => get_string('cardcolor_bordeaux', 'filter_courseprofesores'),
+        'green' => get_string('cardcolor_green', 'filter_courseprofesores'),
+        'purple' => get_string('cardcolor_purple', 'filter_courseprofesores'),
     ];
 
     $settings->add(new admin_setting_configselect(
